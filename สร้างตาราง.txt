@@ -27,3 +27,27 @@ FROM "users"
 WHERE username = 'alice'
   AND status = true
   AND password = crypt('123456', password);
+
+
+
+สร้าง Cart 
+
+
+CREATE TABLE Cart (
+    cart_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Cart_item (
+    cart_item_id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    cart_item_quantity INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(book_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);

@@ -1,160 +1,204 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BookStore | Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BookStore | Register</title>
 
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Font: Poppins -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to bottom right, #EAF3FF, #ffffff);
-      min-height: 100vh;
-    }
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom right, #EAF3FF, #ffffff);
+            min-height: 100vh;
+        }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+        h4 { font-size: 1.8rem; }
+        .form-control {
+            padding: 12px 14px;
+            font-size: 1rem;
+            border-radius: 10px;
+        }
+        .btn-orange {
+            background-color: #FF7A00;
+            color: #fff;
+            font-size: 1.05rem;
+            padding: 12px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+        .btn-orange:hover { background-color: #e96f00; }
+        .text-primary { color: #007BFF !important; }
+        label { font-weight: 500; }
+        .subtitle { font-size: 0.95rem; }
+        .card-body { padding: 45px 40px; }
+        .logo-icon { font-size: 38px; color: #007BFF; }
+        .text-small { font-size: 0.9rem; }
+        
+        /* --- CSS สำหรับ Password Validation --- */
+        #password-reqs {
+            font-size: 0.85rem;
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 10px;
+            color: #6c757d;
+        }
+        #password-reqs li::before {
+            content: "•";
+            margin-right: 8px;
+        }
+        #password-reqs li.valid {
+            color: #198754; /* สีเขียวเมื่อเงื่อนไขถูกต้อง */
+        }
+        #password-reqs li.valid::before {
+            content: "✓";
+        }
 
-    .card {
-      border-radius: 20px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
-
-    h4 {
-      font-size: 1.8rem;
-    }
-
-    .form-control {
-      padding: 12px 14px;
-      font-size: 1rem;
-      border-radius: 10px;
-    }
-
-    .btn-orange {
-      background-color: #FF7A00;
-      color: #fff;
-      font-size: 1.05rem;
-      padding: 12px;
-      border-radius: 10px;
-      transition: 0.2s;
-    }
-
-    .btn-orange:hover {
-      background-color: #e96f00;
-    }
-
-    .text-primary {
-      color: #007BFF !important;
-    }
-
-    label {
-      font-weight: 500;
-    }
-
-    .subtitle {
-      font-size: 0.95rem;
-    }
-
-    .card-body {
-      padding: 45px 40px;
-    }
-
-    .logo-icon {
-      font-size: 38px;
-      color: #007BFF;
-    }
-
-    .text-small {
-      font-size: 0.9rem;
-    }
-  </style>
+    </style>
 </head>
 
 <body>
-  <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card border-0" style="max-width: 450px; width: 100%;">
-      <div class="card-body">
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card border-0" style="max-width: 450px; width: 100%;">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <span class="logo-icon me-2">📚</span>
+                        <h4 class="fw-semibold mb-0 text-dark">BookStore</h4>
+                    </div>
+                    <p class="subtitle text-muted mb-0">Create your account and start reading</p>
+                </div>
 
-        <!-- Logo -->
-        <div class="text-center mb-4">
-          <div class="d-flex justify-content-center align-items-center mb-3">
-            <span class="logo-icon me-2">📚</span>
-            <h4 class="fw-semibold mb-0 text-dark">BookStore</h4>
-          </div>
-          <p class="subtitle text-muted mb-0">Create your account and start reading</p>
+                <form id="registerForm" novalidate>
+                    <div class="mb-4">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="mb-3"> <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Create a password" required>
+                    </div>
+
+                    <ul id="password-reqs">
+                        <li id="req-length">At least 8 characters</li>
+                        <li id="req-lower">A lowercase letter</li>
+                        <li id="req-upper">An uppercase letter</li>
+                        <li id="req-digit">A number</li>
+                        <li id="req-special">A special character (!@#$%^&*)</li>
+                    </ul>
+
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-orange w-100 mb-3">Sign Up</button>
+                    <p class="text-center text-muted text-small mb-0">
+                        Already have an account?
+                        <a href="login.html" class="text-primary fw-semibold text-decoration-none">Sign in</a>
+                    </p>
+                </form>
+            </div>
         </div>
-
-        <!-- Register Form -->
-        <form id="registerForm">
-
-          <div class="mb-4">
-            <label for="email" class="form-label">Email Address</label>
-            <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
-          </div>
-
-          <div class="mb-4">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Create a password" required>
-          </div>
-
-          <div class="mb-4">
-            <label for="confirmPassword" class="form-label">Confirm Password</label>
-            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
-          </div>
-
-          <button type="submit" class="btn btn-orange w-100 mb-3" >Sign Up</button>
-
-          <p class="text-center text-muted text-small mb-0">
-            Already have an account?
-            <a href="login.html" class="text-primary fw-semibold text-decoration-none">Sign in</a>
-          </p>
-        </form>
-
-      </div>
     </div>
-  </div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <div class="modal fade" id="errorModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius: 15px;"><div class="modal-body text-center p-4"><i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i><h5 class="modal-title mt-3 mb-2">Registration Failed</h5><p id="errorMessage" class="text-muted"></p><button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button></div></div></div></div>
+    <div class="modal fade" id="successModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius: 15px;"><div class="modal-body text-center p-4"><i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i><h5 class="modal-title mt-3 mb-2">Registration Successful!</h5><p id="successMessage" class="text-muted"></p></div></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-  const registerForm = document.getElementById("registerForm");
+    const registerForm = document.getElementById("registerForm");
+    const passwordInput = document.getElementById("password");
+    
+    // Requirements elements
+    const reqs = {
+        length: document.getElementById('req-length'),
+        lower: document.getElementById('req-lower'),
+        upper: document.getElementById('req-upper'),
+        digit: document.getElementById('req-digit'),
+        special: document.getElementById('req-special'),
+    };
 
-  registerForm.addEventListener("submit", async function(e) {
-    e.preventDefault(); // ป้องกัน form submit แบบ default
+    // Modal instances
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'), { backdrop: 'static', keyboard: false });
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const confirm = document.getElementById("confirmPassword").value;
-
-    if (!email || !password || !confirm) {
-      alert("Please fill in all required fields.");
-      return;
+    function showErrorModal(message) {
+        document.getElementById('errorMessage').textContent = message;
+        errorModal.show();
     }
-    if (password !== confirm) {
-      alert("Password and confirmation do not match. Please try again.");
-      return;
+    function showSuccessModal(message) {
+        document.getElementById('successMessage').textContent = message;
+        successModal.show();
     }
 
-    try {
-      const res = await axios.post(
-        "http://localhost:8000/api/register",
-        { email, password },
-        { withCredentials: true }
-      );
-      alert("Signup successful!");
-      window.location.href = "/login";
-    } catch (err) {
-      console.error(err);
-      alert("Sign up failed. Please try again.");
+    // Function to check password as user types
+    function validatePassword() {
+        const value = passwordInput.value;
+        // Length check
+        value.length >= 8 ? reqs.length.classList.add('valid') : reqs.length.classList.remove('valid');
+        // Lowercase check
+        /[a-z]/.test(value) ? reqs.lower.classList.add('valid') : reqs.lower.classList.remove('valid');
+        // Uppercase check
+        /[A-Z]/.test(value) ? reqs.upper.classList.add('valid') : reqs.upper.classList.remove('valid');
+        // Digit check
+        /\d/.test(value) ? reqs.digit.classList.add('valid') : reqs.digit.classList.remove('valid');
+        // Special character check
+        /[!@#$%^&*]/.test(value) ? reqs.special.classList.add('valid') : reqs.special.classList.remove('valid');
     }
-  });
+
+    // Add event listener for live validation
+    passwordInput.addEventListener('input', validatePassword);
+
+    registerForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = passwordInput.value;
+        const confirmPass = document.getElementById("confirmPassword").value;
+
+        if (!email || !password || !confirmPass) {
+            showErrorModal("Please fill in all required fields.");
+            return;
+        }
+
+        // --- NEW: Final comprehensive password check on submit ---
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            showErrorModal("Your password does not meet all security requirements. Please check the list and try again.");
+            return;
+        }
+
+        if (password !== confirmPass) {
+            showErrorModal("Password and confirmation do not match. Please try again.");
+            return;
+        }
+
+        try {
+            const res = await axios.post(
+                "http://localhost:8000/api/register",
+                { email, password },
+                { withCredentials: true }
+            );
+            
+            showSuccessModal("You will be redirected to the login page shortly.");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+            const errorMessage = err.response?.data?.message || "An unknown error occurred. Please try again.";
+            showErrorModal(errorMessage);
+        }
+    });
 </script>
 
 </body>
-
 </html>

@@ -65,6 +65,9 @@ app.get('/products', checkAuth, (req, res) => {
   if (req.userRole !== "admin") return res.redirect("/");
   res.sendFile(__dirname + "/public/adminbook.html");
 });
+app.get('/userprofile',checkAuth,(req,res) =>{
+  res.sendFile(__dirname + "/public/userprofile.html")
+});
 
 // 🔹 Register
 app.post('/api/register', async (req, res) => {
@@ -211,8 +214,109 @@ adminRouter.delete("/products/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete book" });
   }
 });
-
 app.use("/api/admin", adminRouter);
 
+// ===== USERS Profile =====
+app.get('/api/profile', checkAuth, async(req,res)=>{
+    try {
+        const result = await pool.query('SELECT firstname, lastname, email, phone, address FROM users WHERE user_id = $1 ',[req.userId])
+        res.json(result.rows[0])
+    } catch (error) {
+      console.error("Query profile error:", error);
+      res.status(500).json({ error: "Server error cannot query profile" });
+    }
+})
+//Update Profile
+app.put("/api/profile",checkAuth, async(req,res)=>{
+  try {
+    const{firstname, lastname,phone,address} = req.body;
+    if(!firstname||!lastname||!phone||!address){
+      return res.status(400).json({ message: "Input full fill" });
+    }
+    await pool.query(
+  'UPDATE users SET firstname = $1, lastname = $2, phone = $3, address = $4 WHERE user_id = $5',
+  [firstname, lastname, phone, address, req.userId]
+);
+
+    res.json({message:"Update Succesfull"})
+  } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Server error cannot update profile" });
+  }
+})
+
+// ===== CART =====
+app.get('/api/cart',checkAuth, async(req,res)=>{
+  try {
+    const result = await pool.query(`SELECT c.product_id,c.cart_item_quantity,p.book_name,p.book_price,p.image_url FROM cart_item c JOIN products p 
+        ON c.product_id = p.book_id WHERE c.user_id = $1 AND p.is_active = TRUE`,[req.userId])
+        res.json(result.rows)
+  } catch (error) {
+    console.error("Query Cart error:", error);
+      res.status(500).json({ error: "Server error cannot query cart" });
+  }
+})
+app.post('/api/cart',checkAuth, async(req,res)=>{
+  try {
+    const {product_id,quantity} = req.body
+    const result = await pool.query(`INSERT INTO cart_item (user_id,product_id,cart_item_quantity)
+    VALUES ($1,$2,$3) ON CONFLICT(user_id,product_id) DO UPDATE SET cart_item_quantity = cart_item.cart_item_quantity + EXCLUDED.cart_item_quantity RETURNING *`,[req.userId,product_id,quantity])
+    res.status(201).json({message:"Successfull"})
+  } catch (error) {
+    console.error("Add Cart error:", error);
+      res.status(500).json({ error: "Server error cannot add cart" });
+  }
+})
+// ✅ PUT — อัปเดตจำนวนสินค้าในตะกร้า
+app.put('/api/cart/:product_id', checkAuth, async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    const { quantity } = req.body;
+
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ error: "Invalid quantity" });
+    }
+
+    const result = await pool.query(
+      `UPDATE cart_item 
+       SET cart_item_quantity = $1 
+       WHERE user_id = $2 AND product_id = $3 
+       RETURNING *`,
+      [quantity, req.userId, product_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Item not found in cart" });
+    }
+
+    res.json({ message: "Cart item updated", item: result.rows[0] });
+  } catch (error) {
+    console.error("Update Cart error:", error);
+    res.status(500).json({ error: "Server error cannot update cart" });
+  }
+});
+
+// ✅ DELETE — ลบสินค้าออกจากตะกร้า
+app.delete('/api/cart/:product_id', checkAuth, async (req, res) => {
+  try {
+    const { product_id } = req.params;
+
+    const result = await pool.query(
+      `DELETE FROM cart_item 
+       WHERE user_id = $1 AND product_id = $2 
+       RETURNING *`,
+      [req.userId, product_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Item not found in cart" });
+    }
+
+    res.json({ message: "Cart item removed", removed: result.rows[0] });
+  } catch (error) {
+    console.error("Delete Cart error:", error);
+    res.status(500).json({ error: "Server error cannot delete cart" });
+  }
+});
 // ===== Start Server =====
 app.listen(port, () => console.log(`✅ Server running on http://localhost:${port}`));

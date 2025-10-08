@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | BookStore</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #007BFF;
+            --primary-orange: #FF7A00;
+            --light-bg: #f4f6f9; /* เปลี่ยนพื้นหลังให้ดูสบายตาขึ้น */
+            --card-bg: #ffffff;
+            --text-dark: #343a40;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--light-bg);
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .profile-picture-wrapper {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #e9f5ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1rem auto;
+            border: 3px solid var(--primary-blue);
+        }
+        .profile-picture-wrapper i {
+            font-size: 60px;
+            color: var(--primary-blue);
+        }
+        .sidebar h5 {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-dark);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar .nav-link.active {
+            background-color: var(--primary-blue);
+            color: #fff;
+            font-weight: 500;
+        }
+        .sidebar .nav-link:hover:not(.active) {
+            background-color: #f0f2f5;
+            color: var(--primary-blue);
+        }
+
+        /* --- Main Content --- */
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .content-card h4 {
+            font-weight: 600;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary-orange);
+            display: inline-block;
+        }
+
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            border: 1px solid transparent;
+        }
+
+        /* --- Buttons --- */
+        .btn-edit {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #0069d9;
+            color: white;
+        }
+        .btn-save {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: #e66a00;
+            color: white;
+        }
+        
+        /* --- Modal Styles --- */
+        .modal-body .bi {
+            font-size: 4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="sidebar text-center">
+                    <div class="profile-picture-wrapper">
+                        <img src="https://static.vecteezy.com/system/resources/thumbnails/028/087/760/small_2x/user-avatar-icon-doodle-style-png.png" alt="User Avatar" class="img-fluid">
+                    </div>
+                    <h5 id="userName">Loading...</h5>
+                    <p id="userEmail" class="text-muted small">Loading...</p>
+                    <hr>
+                    <div class="nav flex-column nav-pills">
+                        <a href="#" class="nav-link active"><i class="bi bi-person-fill-gear me-2"></i>Account Settings</a>
+                        <a href="#" class="nav-link"><i class="bi bi-box-seam me-2"></i>My Orders</a>
+                        <a href="index.html" class="nav-link"><i class="bi bi-arrow-left-circle me-2"></i>Back to Home</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="content-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Account Settings</h4>
+                        <div>
+                            <button class="btn btn-edit" id="editBtn"><i class="bi bi-pencil-square me-2"></i>Edit</button>
+                            <button class="btn btn-save d-none" id="saveBtn"><i class="bi bi-save me-2"></i>Save Changes</button>
+                            <button class="btn btn-secondary d-none" id="cancelBtn"><i class="bi bi-x-lg me-2"></i>Cancel</button>
+                        </div>
+                    </div>
+
+                    <form id="profileForm">
+                        <h5 class="fw-semibold text-muted mb-3">Personal Information</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstname" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastname" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone" readonly />
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <h5 class="fw-semibold text-muted mb-3">Shipping Address</h5>
+                        <textarea class="form-control" id="address" rows="3" readonly></textarea>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow" style="border-radius: 12px;"><div class="modal-body text-center p-4">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <h5 class="modal-title mt-3">Success!</h5>
+        <p id="successMessage" class="text-muted"></p>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="modal fade" id="errorModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow" style="border-radius: 12px;">
+        <div class="modal-body text-center p-4"><i class="bi bi-x-circle-fill text-danger"></i>
+          <h5 class="modal-title mt-3">Error!</h5>
+          <p id="errorMessage" class="text-muted"></p>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Try Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Form Inputs
+            const inputs = {
+                firstname: document.getElementById("firstname"),
+                lastname: document.getElementById("lastname"),
+                phone: document.getElementById("phone"),
+                address: document.getElementById("address"),
+                email: document.getElementById("email") // Email is always readonly
+            };
+            const editableInputs = [inputs.firstname, inputs.lastname, inputs.phone, inputs.address];
+
+            // Buttons
+            const editBtn = document.getElementById("editBtn");
+            const saveBtn = document.getElementById("saveBtn");
+            const cancelBtn = document.getElementById("cancelBtn");
+
+            // Display elements
+            const userName = document.getElementById("userName");
+            const userEmail = document.getElementById("userEmail");
+
+            // Modals
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            
+            let originalData = {}; // Store original data for cancellation
+
+            function showSuccessModal(message) {
+                document.getElementById('successMessage').textContent = message;
+                successModal.show();
+            }
+            function showErrorModal(message) {
+                document.getElementById('errorMessage').textContent = message;
+                errorModal.show();
+            }
+
+            function toggleEditMode(isEditing) {
+                editableInputs.forEach(input => input.readOnly = !isEditing);
+                editBtn.classList.toggle("d-none", isEditing);
+                saveBtn.classList.toggle("d-none", !isEditing);
+                cancelBtn.classList.toggle("d-none", !isEditing);
+            }
+
+            async function loadProfile() {
+                try {
+                    // API Call stays the same
+                    const res = await axios.get("http://localhost:8000/api/profile", { withCredentials: true });
+                    const data = res.data;
+                    
+                    originalData = data; // Store fetched data
+                    
+                    inputs.email.value = data.email || "";
+                    inputs.firstname.value = data.firstname || "";
+                    inputs.lastname.value = data.lastname || "";
+                    inputs.phone.value = data.phone || "";
+                    inputs.address.value = data.address || "";
+
+                    userName.textContent = `${data.firstname || ''} ${data.lastname || ''}`.trim() || 'User';
+                    userEmail.textContent = data.email || 'No email';
+
+                } catch (err) {
+                    console.error(err);
+                    showErrorModal("Cannot load profile. Please log in first.");
+                    setTimeout(() => window.location.href = "/login.html", 2000);
+                }
+            }
+            
+            editBtn.addEventListener("click", () => toggleEditMode(true));
+
+            cancelBtn.addEventListener("click", () => {
+                // Revert to original data
+                inputs.firstname.value = originalData.firstname || "";
+                inputs.lastname.value = originalData.lastname || "";
+                inputs.phone.value = originalData.phone || "";
+                inputs.address.value = originalData.address || "";
+                toggleEditMode(false);
+            });
+
+            saveBtn.addEventListener("click", async () => {
+                try {
+                    const body = {
+                        firstname: inputs.firstname.value,
+                        lastname: inputs.lastname.value,
+                        phone: inputs.phone.value,
+                        address: inputs.address.value,
+                    };
+
+                    // API Call stays the same
+                    await axios.put("http://localhost:8000/api/profile", body, { withCredentials: true });
+                    
+                    showSuccessModal("Profile updated successfully!");
+                    toggleEditMode(false);
+                    await loadProfile(); // Reload profile to confirm changes and update originalData
+                } catch (err) {
+                    console.error("Update error:", err);
+                    showErrorModal("Failed to update profile. Please make sure all fields are filled and try again.");
+                }
+            });
+
+            loadProfile();
+        });
+    </script>
+</body>
+</html>
