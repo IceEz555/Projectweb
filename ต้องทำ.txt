@@ -1,0 +1,2 @@
+-สร้าง db ใน cart 
+-ก่อน add to cart ต้อง login ก่อน

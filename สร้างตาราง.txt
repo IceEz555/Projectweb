@@ -1,0 +1,29 @@
+CREATE TABLE "users" (
+  user_id   SERIAL PRIMARY KEY,
+  firstname  VARCHAR(255) ,
+  lastname  VARCHAR(255) ,
+  email	    VARCHAR(255) UNIQUE NOT NULL,
+  phone     VARCHAR(10) , 
+  address   TEXT ,
+  password  VARCHAR(20) NOT NULL,  
+  role      VARCHAR(50) DEFAULT 'customer'
+);
+
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+INSERT INTO "users"(fullname, username, password, role, status)
+VALUES
+('Alice Admin',  'alice', crypt('123456', gen_salt('bf')), 'admin',   true),
+('Tom Teacher',  'tom',   crypt('qwerty', gen_salt('bf')), 'teacher', true),
+('Sam Student',  'sam',   crypt('abcdef', gen_salt('bf')), 'student', true),
+('Jane Student', 'jane',  crypt('654321', gen_salt('bf')), 'student', true),
+('Bob Banned',   'bob',   crypt('secret', gen_salt('bf')), 'student', false);
+
+
+
+SELECT user_id, fullname, username, role, status
+FROM "users"
+WHERE username = 'alice'
+  AND status = true
+  AND password = crypt('123456', password);

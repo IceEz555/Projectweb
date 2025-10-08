@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Book Store</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;700&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* styles.css (จำกัดไม่เกิน 80 บรรทัด) */
+        :root {
+            --primary-blue: #007BFF;
+            --primary-orange: #FF7A00;
+        }
+
+        body {
+            font-family: 'Prompt', 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* --- Navbar & Hero Section --- */
+        .navbar-brand {
+            color: var(--primary-blue) !important;
+        }
+
+        .hero {
+            padding: 4rem 0;
+            background: linear-gradient(90deg, #007BFF, #FF7A00);
+            /* Gradient background */
+        }
+
+        .btn-orange {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: #fff;
+        }
+
+        .btn-orange:hover {
+            background-color: #e66a00;
+            border-color: #e66a00;
+            color: #fff;
+        }
+
+        /* --- Book Card --- */
+        .book-card {
+            border: 1px solid #dee2e6;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        .book-card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .book-card img {
+            height: 350px;
+            object-fit: cover;
+        }
+
+        .book-card .card-body {
+            padding-top: 0.5rem;
+        }
+
+        /* --- Cart Popup --- */
+        .cart-popup {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            /* Hide popup */
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background-color: #fff;
+            box-shadow: -3px 0 6px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease-in-out;
+            z-index: 1055;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-popup.show {
+            right: 0;
+            /* Show popup */
+        }
+
+        .cart-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+        }
+
+        .cart-backdrop.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="bg-white sticky-top shadow-sm">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand fw-bold fs-4" href="#">
+                    <i class="bi bi-book-half"></i> BookStore
+                </a>
+                <div class="mx-auto w-50">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="ค้นหาหนังสือ...">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-light position-relative me-3" id="cart-button">
+                        <i class="bi bi-cart fs-5"></i>
+                        <span id="cart-count"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                            style="display: none;">0</span>
+                    </button>
+                    <div id="auth-container">
+                        <a href="login.html" class="btn btn-light">
+                            <i class="bi bi-person-circle fs-5 me-2"></i>Login
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero text-white text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">ยินดีต้อนรับสู่ BookStore</h1>
+            <p class="lead">ค้นพบหนังสือดีดี มากมาย พร้อมส่งถึงมือคุณ</p>
+            <a href="#books-section" class="btn btn-orange btn-lg mt-3">Shop Now</a>
+        </div>
+    </section>
+
+    <main class="container my-5">
+        <section id="categories-section" class="mb-5">
+            <h2 class="mb-3">หมวดหมู่</h2>
+            <div>
+                <button class="btn btn-primary">ทั้งหมด</button>
+                <button class="btn btn-outline-secondary">Technology</button>
+                <button class="btn btn-outline-secondary">Fiction</button>
+                <button class="btn btn-outline-secondary">Self-Help</button>
+                <button class="btn btn-outline-secondary">Finance</button>
+                <button class="btn btn-outline-secondary">Business</button>
+                <button class="btn btn-outline-secondary">Science</button>
+            </div>
+        </section>
+
+        <section id="books-section">
+            <h2 class="mb-3">หนังสือแนะนำ</h2>
+            <div id="book-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-white text-center py-4 mt-5" style="background-color: #0056b3;">
+        <div class="container">
+            <p class="mb-0">&copy; 2025 Online Book Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="cart-backdrop" class="cart-backdrop"></div>
+    <div id="cart-popup" class="cart-popup">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+            <h5 class="mb-0">ตะกร้าสินค้า</h5>
+            <button id="close-cart-button" class="btn-close"></button>
+        </div>
+        <div id="cart-items" class="p-3 flex-grow-1 overflow-auto">
+            <p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p>
+        </div>
+        <div class="p-3 border-top bg-light">
+            <div class="d-flex justify-content-between fs-5 mb-3">
+                <strong>ยอดรวม:</strong>
+                <strong id="cart-total">฿0.00</strong>
+            </div>
+            <button class="btn btn-primary w-100 btn-lg">Checkout</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+    let cart = [];
+
+    async function fetchBooks() {
+        try {
+            const res = await axios.get("/api/books");
+            return res.data.books || [];
+        } catch (err) {
+            console.error("Error fetching books:", err);
+            return [];
+        }
+    }
+
+    function renderBooks(books) {
+        const container = document.getElementById("book-list");
+        container.innerHTML = '';
+
+        if (books.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted w-100">ไม่มีหนังสือในระบบ</div>';
+            return;
+        }
+
+        books.forEach(book => {
+            const cardHtml = `
+            <div class="col">
+                <div class="card h-100 book-card">
+                    <img src="${book.image_url}" class="card-img-top" alt="${book.book_name}" style="height: 250px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column p-3">
+                        <h6 class="card-title flex-grow-1">${book.book_name}</h6>
+                        <p class="card-text text-muted small">${book.author}</p>
+                        <p class="fw-bold mb-2">฿${parseFloat(book.book_price).toFixed(2)}</p>
+                        <button class="btn btn-sm btn-orange add-to-cart-btn" data-book-id="${book.book_id}">
+                            <i class="bi bi-cart-plus"></i> เพิ่มลงตะกร้า
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+
+    async function checkAuthStatus() {
+    const authContainer = document.getElementById('auth-container');
+    try {
+        const res = await axios.get("http://localhost:8000/api/user/auth", { withCredentials: true });
+        const userdata = res.data;
+        authContainer.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi bi-person-circle fs-5 me-2"></i>
+                <span class="me-3">${userdata.email}</span>
+                <button id="logout-btn" class="btn btn-outline-danger btn-sm">Logout</button>
+            </div>
+        `;
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await axios.post("http://localhost:8000/api/logout", {}, { withCredentials: true });
+            location.reload();
+        });
+
+    } catch (error) {
+        console.log("User not logged in");
+    }
+}
+
+    function updateCartUI() {
+        const cartItemsContainer = document.getElementById("cart-items");
+        const cartCount = document.getElementById("cart-count");
+        const cartTotal = document.getElementById("cart-total");
+
+        if (cart.length === 0) {
+            cartItemsContainer.innerHTML = '<p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p>';
+            cartCount.style.display = 'none';
+            cartTotal.textContent = "฿0.00";
+            return;
+        }
+
+        cartCount.style.display = 'inline-block';
+        cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+        let html = '';
+        let total = 0;
+        cart.forEach(item => {
+            const subtotal = item.book_price * item.quantity;
+            total += subtotal;
+            html += `
+            <div class="d-flex align-items-center mb-3">
+                <img src="${item.image_url}" alt="${item.book_name}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${item.book_name}</h6>
+                    <small class="text-muted">${item.author}</small>
+                    <p class="mb-0 fw-bold">฿${subtotal.toFixed(2)}</p>
+                    <div class="d-flex align-items-center mt-1">
+                        <button class="btn btn-sm btn-outline-secondary me-1 decrease-qty" data-id="${item.book_id}">−</button>
+                        <span class="px-2">${item.quantity}</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-1 increase-qty" data-id="${item.book_id}">+</button>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-danger ms-2 remove-item" data-id="${item.book_id}"><i class="bi bi-trash"></i></button>
+            </div>
+            `;
+        });
+        cartItemsContainer.innerHTML = html;
+        cartTotal.textContent = `฿${total.toFixed(2)}`;
+    }
+
+    function addToCart(book) {
+        const existing = cart.find(item => item.book_id === book.book_id);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({ ...book, quantity: 1 });
+        }
+        updateCartUI();
+    }
+
+    // --- Event Listeners ---
+    document.getElementById('cart-button').addEventListener('click', () => {
+        document.getElementById('cart-popup').classList.toggle('show');
+        document.getElementById('cart-backdrop').classList.toggle('show');
+    });
+    document.getElementById('close-cart-button').addEventListener('click', () => {
+        document.getElementById('cart-popup').classList.remove('show');
+        document.getElementById('cart-backdrop').classList.remove('show');
+    });
+    document.getElementById('cart-backdrop').addEventListener('click', () => {
+        document.getElementById('cart-popup').classList.remove('show');
+        document.getElementById('cart-backdrop').classList.remove('show');
+    });
+
+    document.getElementById('book-list').addEventListener('click', (event) => {
+        const btn = event.target.closest('.add-to-cart-btn');
+        if (!btn) return;
+        const bookId = parseInt(btn.dataset.bookId);
+        const card = btn.closest('.card');
+        const book = {
+            book_id: bookId,
+            book_name: card.querySelector('.card-title').textContent,
+            author: card.querySelector('.card-text').textContent,
+            book_price: parseFloat(card.querySelector('.fw-bold').textContent.replace('฿', '')),
+            image_url: card.querySelector('img').src
+        };
+        addToCart(book);
+    });
+
+    // เพิ่มปุ่ม +, − และ ลบ
+    document.getElementById('cart-items').addEventListener('click', (event) => {
+        const id = parseInt(event.target.dataset.id);
+        if (event.target.classList.contains('increase-qty')) {
+            const item = cart.find(i => i.book_id === id);
+            if (item) item.quantity += 1;
+        } else if (event.target.classList.contains('decrease-qty')) {
+            const item = cart.find(i => i.book_id === id);
+            if (item && item.quantity > 1) item.quantity -= 1;
+        } else if (event.target.closest('.remove-item')) {
+            cart = cart.filter(i => i.book_id !== id);
+        }
+        updateCartUI();
+    });
+
+    // --- Initial Load ---
+    async function main() {
+        await checkAuthStatus();
+        const books = await fetchBooks();
+        renderBooks(books);
+    }
+    main();
+});
+</script>
+
+
+</body>
+
+</html>

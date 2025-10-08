@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Manage Books (Live API)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --custom-orange: #FF7B54;
+            --custom-orange-dark: #F7653B;
+            --custom-blue: #0d6efd;
+            --custom-light-blue: #e7f0ff;
+            --custom-text: #343a40;
+            --custom-background: #f9fafb;
+            --custom-border: #dee2e6;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--custom-background);
+            color: var(--custom-text);
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .card {
+            border: 1px solid var(--custom-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid var(--custom-border);
+        }
+
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            border: none;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tabs .nav-link.active,
+        .nav-tabs .nav-item.show .nav-link {
+            color: var(--custom-blue);
+            font-weight: 600;
+            background-color: transparent;
+            border-color: var(--custom-blue);
+        }
+
+        .btn-primary {
+            background-color: var(--custom-orange);
+            border-color: var(--custom-orange);
+            font-weight: 500;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: var(--custom-orange-dark);
+            border-color: var(--custom-orange-dark);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: var(--custom-light-blue);
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .status-active {
+            color: #198754;
+            background-color: #d1e7dd;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .action-icons i {
+            cursor: pointer;
+            margin: 0 6px;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .action-icons i:hover {
+            transform: scale(1.2);
+        }
+
+        .book-image-sm {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid">
+        <div class="main-content">
+            <header class="mb-4">
+                <h2>Admin Dashboard</h2>
+                <p class="text-muted">Manage your bookstore operations</p>
+            </header>
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item"><a class="nav-link" href="#">Overview</a></li>
+                <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">📖 Manage Books</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Manage Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Manage Users</a></li>
+            </ul>
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h4>Book Management</h4>
+                        <p class="text-muted mb-0">Add, edit, and manage your book inventory</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookModal"
+                            onclick="prepareAddBook()">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Add Book
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Book</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="book-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bookModal" tabindex="-1" aria-labelledby="bookModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookModalLabel">Add New Book</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bookForm">
+                        <input type="hidden" id="bookId">
+                        <div class="row">
+                            <div class="col-md-8 mb-3"><label for="bookName" class="form-label">Book Name</label><input
+                                    type="text" class="form-control" id="bookName" required></div>
+                            <div class="col-md-4 mb-3"><label for="bookAuthor" class="form-label">Author</label><input
+                                    type="text" class="form-control" id="bookAuthor" required></div>
+                        </div>
+                        <div class="mb-3"><label for="bookDescription" class="form-label">Description</label><textarea
+                                class="form-control" id="bookDescription" rows="4" required></textarea></div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label for="bookCategory"
+                                    class="form-label">Category</label><input type="text" class="form-control"
+                                    id="bookCategory" required></div>
+                            <div class="col-md-4 mb-3"><label for="bookPrice" class="form-label">Price</label><input
+                                    type="number" class="form-control" id="bookPrice" step="0.01" required></div>
+                            <div class="col-md-4 mb-3"><label for="bookStock" class="form-label">Stock</label><input
+                                    type="number" class="form-control" id="bookStock" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label for="imageUrl" class="form-label">Image URL</label><input
+                                    type="text" class="form-control" id="imageUrl" required></div>
+                            <div class="col-md-6 mb-3"><label for="oldPrice" class="form-label">Old Price
+                                    (Optional)</label><input type="number" class="form-control" id="oldPrice"
+                                    step="0.01"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBook()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        const ADMIN_API_URL = '/api/admin/products';
+        let localBooks = [];
+        let editingBookId = null; // ✅ state สำหรับเก็บว่าเรากำลังแก้ไขหนังสือเล่มไหน
+
+        // โหลดข้อมูลหนังสือทันทีเมื่อเปิดหน้า
+        document.addEventListener('DOMContentLoaded', () => { fetchBooks(); });
+
+        // ✅ ดึงข้อมูลจาก backend
+        async function fetchBooks() {
+            try {
+                const response = await axios.get(ADMIN_API_URL, { withCredentials: true });
+                localBooks = response.data.products;
+                renderBooks(localBooks);
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                alert('❌ Failed to fetch books. Please check console.');
+                renderBooks([]);
+            }
+        }
+
+        // ✅ แสดงข้อมูลหนังสือในตาราง
+        function renderBooks(books) {
+            const tableBody = document.getElementById('book-table-body');
+            tableBody.innerHTML = '';
+
+            if (!books.length) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found.</td></tr>';
+                return;
+            }
+
+            books.forEach(book => {
+                tableBody.innerHTML += `
+        <tr id="book-${book.book_id}">
+            <td>
+                <div class="d-flex align-items-center">
+                    <img src="${book.image_url}" class="book-image-sm me-3" alt="${book.book_name}">
+                    <div>
+                        <h6 class="mb-0">${book.book_name}</h6>
+                        <small class="text-muted">ID: ${book.book_id}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${book.author}</td>
+            <td>${book.book_type}</td>
+            <td>฿${parseFloat(book.book_price).toFixed(2)}</td>
+            <td>${book.stock}</td>
+            <td><span class="status-active">Active</span></td>
+            <td class="action-icons">
+                <i class="bi bi-eye text-info" title="View"></i>
+                <i class="bi bi-pencil-square text-warning" title="Edit" 
+                    data-bs-toggle="modal" data-bs-target="#bookModal" 
+                    onclick="prepareEditBook(${book.book_id})"></i>
+                <i class="bi bi-trash-fill text-danger" title="Delete" 
+                    onclick="deleteBook(${book.book_id})"></i>
+            </td>
+        </tr>`;
+            });
+        }
+
+        // ✅ เปิด modal สำหรับ “เพิ่ม” หนังสือใหม่
+        function prepareAddBook() {
+            const form = document.getElementById('bookForm');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('bookModalLabel').innerText = 'Add New Book';
+            editingBookId = null; // 🧩 บอกว่าเราจะเพิ่มใหม่
+        }
+
+        // ✅ เปิด modal สำหรับ “แก้ไข” หนังสือที่เลือก
+        function prepareEditBook(id) {
+            const form = document.getElementById('bookForm');
+            form.classList.remove('was-validated');
+
+            const book = localBooks.find(b => Number(b.book_id) === Number(id));
+            if (!book) return alert('❌ Book not found');
+
+            document.getElementById('bookModalLabel').innerText = 'Edit Book';
+            editingBookId = id; // 🧩 จำว่าเรากำลังแก้ไขเล่มนี้
+
+            // ✅ ใส่ข้อมูลเดิมลงในฟอร์ม
+            document.getElementById('bookId').value = book.book_id;
+            document.getElementById('bookName').value = book.book_name;
+            document.getElementById('bookDescription').value = book.description;
+            document.getElementById('bookAuthor').value = book.author;
+            document.getElementById('bookCategory').value = book.book_type;
+            document.getElementById('bookPrice').value = book.book_price;
+            document.getElementById('bookStock').value = book.stock;
+            document.getElementById('oldPrice').value = book.old_price || '';
+            document.getElementById('imageUrl').value = book.image_url;
+        }
+
+        // ✅ เมื่อกดปุ่ม Save → ตรวจโหมด Add หรือ Edit
+        async function saveBook() {
+            const form = document.getElementById('bookForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const bookData = {
+                book_name: document.getElementById('bookName').value,
+                author: document.getElementById('bookAuthor').value,
+                description: document.getElementById('bookDescription').value,
+                book_type: document.getElementById('bookCategory').value,
+                book_price: parseFloat(document.getElementById('bookPrice').value),
+                stock: parseInt(document.getElementById('bookStock').value),
+                image_url: document.getElementById('imageUrl').value,
+                old_price: parseFloat(document.getElementById('oldPrice').value) || null
+            };
+
+            try {
+                if (editingBookId) {
+                    // 🧩 โหมดแก้ไข → เรียก PUT
+                    await axios.put(`${ADMIN_API_URL}/${editingBookId}`, bookData, { withCredentials: true });
+                } else {
+                    // 🧩 โหมดเพิ่มใหม่ → เรียก POST
+                    await axios.post(ADMIN_API_URL, bookData, { withCredentials: true });
+                }
+
+                await fetchBooks();
+                bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
+                alert('✅ Book saved successfully!');
+
+            } catch (error) {
+                console.error('Error saving book:', error);
+                alert(`❌ Error saving book: ${error.message}`);
+            }
+        }
+
+        // ✅ ลบหนังสือ
+        async function deleteBook(id) {
+            if (!confirm('Are you sure you want to delete this book?')) return;
+            try {
+                await axios.delete(`${ADMIN_API_URL}/${id}`, { withCredentials: true });
+                await fetchBooks();
+            } catch (error) {
+                console.error('Error deleting book:', error);
+                alert(`Error deleting book: ${error.message}`);
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>
