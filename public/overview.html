@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Overview</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --text-dark: #343a40;
+            --light-bg: #f9fafb;
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--light-bg);
+        }
+        .main-content { padding: 2rem; }
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .admin-nav .nav-link { color: var(--primary-blue); font-weight: 500; border-bottom: 3px solid transparent; padding-bottom: 0.75rem; margin-right: 1.5rem; }
+        .admin-nav .nav-link.active { color: var(--text-dark); font-weight: 700; border-bottom-color: var(--primary-blue); }
+        .admin-nav .nav-link:hover { color: #0056b3; }
+        
+        .stat-card {
+            padding: 1.5rem;
+        }
+        .stat-card .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-card h6 {
+            color: #6c757d;
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-content">
+            <header class="mb-3">
+                <h2>แดชบอร์ดผู้ดูแลระบบ</h2>
+                <p class="text-muted mb-0">จัดการระบบร้านหนังสือของคุณ</p>
+            </header>
+
+            <nav class="d-flex align-items-center border-bottom mb-4">
+                <ul class="nav admin-nav">
+                    <li class="nav-item"><a class="nav-link active" href="overview.html">📈 Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin.html">📖 Manage Books</a></li>
+                    <li class="nav-item"><a class="nav-link " href="manage_order.html">📦 Manage Orders</a></li>
+                </ul>
+                <div class="ms-auto">
+                    <a href="index.html" class="btn btn-outline-primary">
+                        <i class="bi bi-shop me-2"></i>Go to Storefront
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-primary-subtle text-primary me-3"><i class="bi bi-book-half"></i></div>
+                            <div>
+                                <h6>หนังสือทั้งหมด</h6>
+                                <div id="total-books" class="stat-number">...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-warning-subtle text-warning me-3"><i class="bi bi-box-seam-fill"></i></div>
+                            <div>
+                                <h6>คำสั่งซื้อทั้งหมด</h6>
+                                <div id="total-orders" class="stat-number">...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-info-subtle text-info me-3"><i class="bi bi-people-fill"></i></div>
+                            <div>
+                                <h6>ผู้ใช้ทั้งหมด</h6>
+                                <div id="total-users" class="stat-number">...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                         <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-success-subtle text-success me-3"><i class="bi bi-cash-stack"></i></div>
+                            <div>
+                                <h6>รายได้</h6>
+                                <div id="total-revenue" class="stat-number">...</div>
+                            </div>
+                            <i class="bi bi-arrow-up-right text-success ms-auto fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="mb-3">คำสั่งซื้อล่าสุด</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>รหัสคำสั่งซื้อ</th>
+                                <th>ลูกค้า</th>
+                                <th>ยอดรวม</th>
+                                <th>สถานะ</th>
+                                <th>วันที่</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders-table">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // ยิง 2 API พร้อมกันเพื่อความรวดเร็ว
+                const [summaryRes, recentOrdersRes] = await Promise.all([
+                    axios.get('/api/admin/dashboard-summary', { withCredentials: true }),
+                    axios.get('/api/admin/recent-orders', { withCredentials: true })
+                ]);
+                
+                // แสดงข้อมูลใน Cards
+                const summary = summaryRes.data;
+                document.getElementById('total-books').textContent = summary.totalBooks.toLocaleString();
+                document.getElementById('total-orders').textContent = summary.totalOrders.toLocaleString();
+                document.getElementById('total-users').textContent = summary.totalUsers.toLocaleString();
+                document.getElementById('total-revenue').textContent = `฿${parseFloat(summary.totalRevenue).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+                // แสดงข้อมูลในตาราง
+                const recentOrders = recentOrdersRes.data;
+                const tableBody = document.getElementById('recent-orders-table');
+                tableBody.innerHTML = '';
+
+                if(recentOrders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">ไม่มีคำสั่งซื้อล่าสุด</td></tr>';
+                    return;
+                }
+
+                recentOrders.forEach(order => {
+                    const orderDate = new Date(order.created_at).toLocaleDateString('en-CA'); // YYYY-MM-DD
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><strong>#${order.order_id}</strong></td>
+                            <td>${order.email}</td>
+                            <td>฿${parseFloat(order.total_amount).toFixed(2)}</td>
+                            <td><span class="badge rounded-pill ${getStatusBadge(order.status)}">${order.status}</span></td>
+                            <td>${orderDate}</td>
+                        </tr>
+                    `;
+                });
+
+            } catch (error) {
+                console.error("Failed to load dashboard data:", error);
+                 if (error.response && error.response.status === 401) {
+                    window.location.href = 'login.html';
+                }
+            }
+        });
+
+        // ฟังก์ชันช่วยเปลี่ยนสี Badge ตามสถานะ
+        function getStatusBadge(status) {
+            switch (status.toLowerCase()) {
+                case 'paid': return 'bg-primary-subtle text-primary-emphasis';
+                case 'shipped': return 'bg-info-subtle text-info-emphasis';
+                case 'delivered': return 'bg-success-subtle text-success-emphasis';
+                default: return 'bg-secondary-subtle text-secondary-emphasis';
+            }
+        }
+    </script>
+</body>
+</html>

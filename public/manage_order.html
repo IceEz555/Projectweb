@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Manage Orders</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --primary-orange: #FF7B54;
+            --text-dark: #343a40;
+            --light-bg: #f9fafb;
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--light-bg);
+        }
+        .main-content { padding: 2rem; }
+        .card {
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .admin-nav .nav-link { color: var(--primary-blue); font-weight: 500; border-bottom: 3px solid transparent; padding-bottom: 0.75rem; margin-right: 1.5rem; }
+        .admin-nav .nav-link.active { color: var(--text-dark); font-weight: 700; border-bottom-color: var(--primary-blue); }
+        .admin-nav .nav-link:hover { color: #0056b3; }
+        
+        .accordion-button { font-weight: 500; }
+        .accordion-button:not(.collapsed) { background-color: #e7f1ff; color: var(--primary-blue); box-shadow: none; }
+        .accordion-item { border-radius: 8px !important; border: 1px solid #dee2e6; }
+        .accordion-header { border-radius: 8px !important; }
+
+        .book-item-sm img { width: 60px; height: 90px; object-fit: cover; border-radius: 4px; }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-content">
+            <header class="mb-3">
+                <h2>Admin Dashboard</h2>
+                <p class="text-muted mb-0">Manage your bookstore operations</p>
+            </header>
+
+            <nav class="d-flex align-items-center border-bottom mb-4">
+                <ul class="nav admin-nav">
+                    <li class="nav-item"><a class="nav-link" href="overview.html">📈 Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin.html">📖 Manage Books</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="manage_order.html">📦 Manage Orders</a></li>
+                </ul>
+                <div class="ms-auto">
+                    <a href="index.html" class="btn btn-outline-primary">
+                        <i class="bi bi-shop me-2"></i>Go to Storefront
+                    </a>
+                </div>
+            </nav>
+
+            <div class="card p-4">
+                <h4>Order Management</h4>
+                <p class="text-muted">Update order status and add tracking numbers.</p>
+
+                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pills-paid-tab" data-bs-toggle="pill" data-bs-target="#pills-paid" type="button">
+                            รายการที่ต้องจัดส่ง (Paid) <span id="paid-count" class="badge bg-warning text-dark ms-1">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pills-shipped-tab" data-bs-toggle="pill" data-bs-target="#pills-shipped" type="button">
+                            จัดส่งแล้ว (Shipped)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-paid" role="tabpanel">
+                        <div class="accordion" id="paid-orders-accordion"></div>
+                    </div>
+                    <div class="tab-pane fade" id="pills-shipped" role="tabpanel">
+                         <div class="accordion" id="shipped-orders-accordion"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="trackingModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">Add/Edit Tracking Number</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <p>Order ID: <strong id="modal-order-id"></strong></p>
+            <div class="mb-3">
+              <label for="trackingNumberInput" class="form-label">Tracking Number</label>
+              <input type="text" class="form-control" id="trackingNumberInput" placeholder="e.g., TH123456789BKK" required>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="saveTrackingNumber()">Save Changes</button></div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const trackingModal = new bootstrap.Modal(document.getElementById('trackingModal'));
+        let currentOrderId = null;
+
+        document.addEventListener('DOMContentLoaded', fetchAllOrders);
+
+        async function fetchAllOrders() {
+            try {
+                const [paidRes, shippedRes] = await Promise.all([
+                    axios.get('/api/admin/manageorder', { withCredentials: true }),
+                    axios.get('/api/admin/shipped-order', { withCredentials: true })
+                ]);
+                
+                renderOrders(paidRes.data, 'paid');
+                renderOrders(shippedRes.data, 'shipped');
+
+            } catch (error) {
+                console.error("Failed to fetch orders:", error);
+                alert("Could not load order data.");
+            }
+        }
+        
+        function renderOrders(orders, status) {
+            const containerId = status === 'paid' ? 'paid-orders-accordion' : 'shipped-orders-accordion';
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (status === 'paid') {
+                document.getElementById('paid-count').textContent = orders.length;
+            }
+
+            if (orders.length === 0) {
+                container.innerHTML = `<p class="text-center text-muted p-3">ไม่มีรายการ</p>`;
+                return;
+            }
+
+            orders.forEach((order, index) => {
+                const orderDate = new Date(order.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                
+                const actionButtonHtml = status === 'paid' 
+                    ? `<button class="btn btn-sm btn-warning" onclick="openTrackingModal(${order.order_id})"><i class="bi bi-truck me-1"></i> เพิ่มเลขพัสดุ</button>`
+                    : `<button class="btn btn-sm btn-outline-primary" onclick="openTrackingModal(${order.order_id}, '${order.tracking_number || ''}')"><i class="bi bi-pencil-square me-1"></i> แก้ไข</button>`;
+
+                const accordionItem = `
+                    <div class="accordion-item mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${order.order_id}" onclick="fetchOrderDetails(${order.order_id})">
+                                <div class="d-flex flex-wrap w-100 justify-content-between pe-3 gap-2">
+                                    <span><strong>#${order.order_id}</strong></span>
+                                    <span class="text-muted">${order.email}</span>
+                                    <span class="fw-bold">฿${parseFloat(order.total_amount).toFixed(2)}</span>
+                                    <span class="text-muted">${orderDate}</span>
+                                    <span>${actionButtonHtml}</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse-${order.order_id}" class="accordion-collapse collapse" data-bs-parent="#${containerId}">
+                            <div class="accordion-body" id="details-${order.order_id}">
+                                <div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.innerHTML += accordionItem;
+            });
+        }
+        
+        async function fetchOrderDetails(orderId) {
+            const detailsContainer = document.getElementById(`details-${orderId}`);
+            // ถ้าเคยโหลดแล้ว ไม่ต้องโหลดซ้ำ
+            if (detailsContainer.dataset.loaded) return;
+
+            try {
+                // 🎯 API Endpoint ที่คุณต้องสร้างเพิ่มใน Backend
+                const res = await axios.get(`/api/admin/order/${orderId}`, { withCredentials: true });
+                const { order, items } = res.data;
+
+                let itemsHtml = '';
+                items.forEach(item => {
+                    itemsHtml += `
+                        <div class="d-flex mb-3 book-item-sm">
+                            <img src="${item.image_url}" alt="${item.book_name}">
+                            <div class="ms-3">
+                                <h6 class="mb-1 small">${item.book_name}</h6>
+                                <p class="mb-0 text-muted small">จำนวน: ${item.quantity}, ราคา: ฿${parseFloat(item.price_at_purchase).toFixed(2)}</p>
+                            </div>
+                        </div>`;
+                });
+
+                detailsContainer.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-7"><strong>รายการสินค้า:</strong><hr class="my-2">${itemsHtml}</div>
+                        <div class="col-md-5"><strong>ข้อมูลจัดส่ง:</strong><hr class="my-2">
+                            <p class="mb-1 small"><strong>ผู้รับ:</strong> ${order.recipient_name}</p>
+                            <p class="mb-1 small"><strong>โทร:</strong> ${order.recipient_phone}</p>
+                            <p class="text-muted small">${order.shipping_address}</p>
+                        </div>
+                    </div>`;
+                detailsContainer.dataset.loaded = 'true'; // Mark as loaded
+            } catch (error) {
+                console.error("Failed to fetch order details", error);
+                detailsContainer.innerHTML = `<p class="text-danger">ไม่สามารถโหลดรายละเอียดได้</p>`;
+            }
+        }
+
+        function openTrackingModal(orderId, currentTrackingNumber = '') {
+            currentOrderId = orderId;
+            document.getElementById('modal-order-id').textContent = `#${orderId}`;
+            document.getElementById('trackingNumberInput').value = currentTrackingNumber;
+            trackingModal.show();
+        }
+
+        async function saveTrackingNumber() {
+            const trackingNumber = document.getElementById('trackingNumberInput').value;
+            if (!trackingNumber.trim()) return alert("Please enter a tracking number.");
+            try {
+                await axios.put(`/api/admin/order/${currentOrderId}/tracking`, { trackingNumber }, { withCredentials: true });
+                trackingModal.hide();
+                await fetchAllOrders();
+            } catch (error) {
+                console.error("Failed to update tracking number:", error);
+                alert("Error updating order.");
+            }
+        }
+    </script>
+</body>
+</html>

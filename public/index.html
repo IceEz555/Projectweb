@@ -34,6 +34,26 @@
         .book-card:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
         .book-card img { height: 250px; object-fit: cover; }
         .book-card .card-body { padding-top: 0.5rem; }
+        
+        /* ✅ CSS ที่เพิ่มเข้ามา */
+        .book-card .old-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9rem;
+            margin-left: 8px;
+        }
+        .sale-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
         .cart-popup { position: fixed; top: 0; right: -450px; width: 100%; max-width: 450px; height: 100vh; background-color: #fff; box-shadow: -3px 0 6px rgba(0, 0, 0, 0.1); transition: right 0.3s ease-in-out; z-index: 1055; display: flex; flex-direction: column; }
         .cart-popup.show { right: 0; }
         .cart-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1050; }
@@ -111,13 +131,10 @@
             <h5 class="mb-0">ตะกร้าสินค้า</h5>
             <button id="close-cart-button" class="btn-close"></button>
         </div>
-        <div id="cart-items" class="p-3 flex-grow-1 overflow-auto">
-            <p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p>
-        </div>
+        <div id="cart-items" class="p-3 flex-grow-1 overflow-auto"><p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p></div>
         <div class="p-3 border-top bg-light">
-            <div class="d-flex justify-content-between fs-5 mb-3"><strong>ยอดรวม:</strong><strong
-                    id="cart-total">฿0.00</strong></div>
-            <button class="btn btn-primary w-100 btn-lg">Checkout</button>
+            <div class="d-flex justify-content-between fs-5 mb-3"><strong>ยอดรวม:</strong><strong id="cart-total">฿0.00</strong></div>
+           <a href="checkout.html" class="btn btn-primary w-100 btn-lg">Checkout</a>
         </div>
     </div>
     <div class="position-fixed top-50 start-50 translate-middle p-3" style="z-index: 2000">
@@ -126,247 +143,272 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-exclamation-circle-fill text-orange fs-2 me-3"></i>
                     <div>
-                        <h6 class="mb-0 fw-bold">จำเป็นต้องเข้าสู่ระบบ</h6><span class="text-muted small">กรุณา login
-                            เพื่อดำเนินการต่อ...</span>
+                        <h6 class="mb-0 fw-bold">จำเป็นต้องเข้าสู่ระบบ</h6><span class="text-muted small">กรุณา login เพื่อดำเนินการต่อ...</span>
                     </div>
-                    <button type="button" class="btn-close ms-auto align-self-start" data-bs-dismiss="toast"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close ms-auto align-self-start" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
             <div class="toast-progress"></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // ✅ เปลี่ยนเป็น let เพื่อให้ reassign ค่าจาก API ได้
-            let cart = [];
+    document.addEventListener("DOMContentLoaded", () => {
+        let cart = [];
 
-            // (fetchBooks, renderBooks ไม่มีการเปลี่ยนแปลง)
-            async function fetchBooks() {
-                try {
-                    const res = await axios.get("/api/books");
-                    return res.data.books || [];
-                } catch (err) {
-                    console.error("Error fetching books:", err);
-                    return [];
-                }
+        async function fetchBooks() {
+            try {
+                const res = await axios.get("/api/books");
+                return res.data.books || [];
+            } catch (err) {
+                console.error("Error fetching books:", err);
+                return [];
             }
-            function renderBooks(books) {
-                const container = document.getElementById("book-list");
-                container.innerHTML = '';
-                if (books.length === 0) {
-                    container.innerHTML = '<div class="text-center text-muted w-100">ไม่มีหนังสือในระบบ</div>';
-                    return;
+        }
+
+        function renderBooks(books) {
+            const container = document.getElementById("book-list");
+            container.innerHTML = '';
+            if (books.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted w-100">ไม่มีหนังสือในระบบ</div>';
+                return;
+            }
+
+            books.forEach(book => {
+                let priceHtml = `<p class="fw-bold mb-2">฿${parseFloat(book.book_price).toFixed(2)}</p>`;
+                let saleBadgeHtml = '';
+
+                if (book.old_price && parseFloat(book.old_price) > parseFloat(book.book_price)) {
+                    const discountPercent = Math.round(((book.old_price - book.book_price) / book.old_price) * 100);
+                    priceHtml = `
+                        <div class="d-flex align-items-center">
+                            <p class="fw-bold mb-2 text-danger">฿${parseFloat(book.book_price).toFixed(2)}</p>
+                            <p class="mb-2 old-price">฿${parseFloat(book.old_price).toFixed(2)}</p>
+                        </div>
+                    `;
+                    saleBadgeHtml = `<div class="sale-badge">-${discountPercent}%</div>`;
                 }
-                books.forEach(book => {
-                    // ใช้ book_id แทน product_id ให้ตรงกับ backend
-                    const cardHtml = `
-                        <div class="col">
-                            <div class="card h-100 book-card">
-                                <img src="${book.image_url}" class="card-img-top" alt="${book.book_name}" style="height: 250px; object-fit: cover;">
-                                <div class="card-body d-flex flex-column p-3">
-                                    <h6 class="card-title flex-grow-1">${book.book_name}</h6>
-                                    <p class="card-text text-muted small">${book.author}</p>
-                                    <p class="fw-bold mb-2">฿${parseFloat(book.book_price).toFixed(2)}</p>
-                                    <button class="btn btn-sm btn-orange add-to-cart-btn" data-book-id="${book.book_id}">
-                                        <i class="bi bi-cart-plus"></i> เพิ่มลงตะกร้า
-                                    </button>
-                                </div>
+
+                const cardHtml = `
+                    <div class="col">
+                        <div class="card h-100 book-card">
+                            ${saleBadgeHtml}
+                            <img src="${book.image_url}" class="card-img-top" alt="${book.book_name}">
+                            <div class="card-body d-flex flex-column p-3">
+                                <h6 class="card-title flex-grow-1">${book.book_name}</h6>
+                                <p class="card-text text-muted small">${book.author}</p>
+                                ${priceHtml}
+                                <button class="btn btn-sm btn-orange add-to-cart-btn" data-book-id="${book.book_id}">
+                                    <i class="bi bi-cart-plus"></i> เพิ่มลงตะกร้า
+                                </button>
                             </div>
-                        </div>`;
-                    container.insertAdjacentHTML('beforeend', cardHtml);
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        async function loadCart() {
+            try {
+                const res = await axios.get("/api/cart", {
+                    withCredentials: true
                 });
+                cart = res.data;
+                updateCartUI();
+            } catch (error) {
+                console.log("Could not load cart, user might not be logged in.");
+                cart = [];
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById("cart-items");
+            const cartCount = document.getElementById("cart-count");
+            const cartTotal = document.getElementById("cart-total");
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p>';
+                cartCount.style.display = 'none';
+                cartTotal.textContent = "฿0.00";
+                return;
             }
 
-            // ✅ ฟังก์ชันใหม่สำหรับโหลดข้อมูลตะกร้าจาก API
-            async function loadCart() {
-                try {
-                    const res = await axios.get("/api/cart", { withCredentials: true });
-                    cart = res.data; // อัปเดตข้อมูลตะกร้าจาก server
-                    updateCartUI();
-                } catch (error) {
-                    console.log("Could not load cart, user might not be logged in.");
-                    cart = []; // ถ้าโหลดไม่ได้ ให้ตะกร้าเป็นค่าว่าง
-                    updateCartUI();
-                }
-            }
+            cartCount.style.display = 'inline-block';
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.cart_item_quantity, 0);
 
-            // ✅ อัปเดตฟังก์ชัน `updateCartUI` ให้ตรงกับข้อมูลจาก API
-            function updateCartUI() {
-                const cartItemsContainer = document.getElementById("cart-items");
-                const cartCount = document.getElementById("cart-count");
-                const cartTotal = document.getElementById("cart-total");
-
-                if (cart.length === 0) {
-                    cartItemsContainer.innerHTML = '<p class="text-center text-muted mt-4">ตะกร้าของคุณว่างเปล่า</p>';
-                    cartCount.style.display = 'none';
-                    cartTotal.textContent = "฿0.00";
-                    return;
-                }
-
-                cartCount.style.display = 'inline-block';
-                // ใช้ cart_item_quantity
-                cartCount.textContent = cart.reduce((sum, item) => sum + item.cart_item_quantity, 0);
-
-                let html = '';
-                let total = 0;
-                cart.forEach(item => {
-                    // ใช้ book_price และ cart_item_quantity
-                    const subtotal = item.book_price * item.cart_item_quantity;
-                    total += subtotal;
-                    html += `
-                        <div class="d-flex align-items-center mb-3">
-                            <img src="${item.image_url}" alt="${item.book_name}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">${item.book_name}</h6>
-                                <p class="mb-0 fw-bold">฿${subtotal.toFixed(2)}</p>
-                                <div class="d-flex align-items-center mt-1">
-                                    <button class="btn btn-sm btn-outline-secondary me-1 decrease-qty" data-id="${item.product_id}">−</button>
-                                    <span class="px-2">${item.cart_item_quantity}</span>
-                                    <button class="btn btn-sm btn-outline-secondary ms-1 increase-qty" data-id="${item.product_id}">+</button>
-                                </div>
+            let html = '';
+            let total = 0;
+            cart.forEach(item => {
+                const subtotal = item.book_price * item.cart_item_quantity;
+                total += subtotal;
+                html += `
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="${item.image_url}" alt="${item.book_name}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">${item.book_name}</h6>
+                            <p class="mb-0 fw-bold">฿${subtotal.toFixed(2)}</p>
+                            <div class="d-flex align-items-center mt-1">
+                                <button class="btn btn-sm btn-outline-secondary me-1 decrease-qty" data-id="${item.product_id}">−</button>
+                                <span class="px-2">${item.cart_item_quantity}</span>
+                                <button class="btn btn-sm btn-outline-secondary ms-1 increase-qty" data-id="${item.product_id}">+</button>
                             </div>
-                            <button class="btn btn-sm btn-danger ms-2 remove-item" data-id="${item.product_id}"><i class="bi bi-trash"></i></button>
-                        </div>`;
+                        </div>
+                        <button class="btn btn-sm btn-danger ms-2 remove-item" data-id="${item.product_id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>`;
+            });
+            cartItemsContainer.innerHTML = html;
+            cartTotal.textContent = `฿${total.toFixed(2)}`;
+        }
+
+        async function checkAuthStatus() {
+            const authContainer = document.getElementById('auth-container');
+            try {
+                const res = await axios.get("http://localhost:8000/api/user/auth", {
+                    withCredentials: true
                 });
-                cartItemsContainer.innerHTML = html;
-                cartTotal.textContent = `฿${total.toFixed(2)}`;
-            }
+                const userdata = res.data;
+                await loadCart();
 
-            // ✅ อัปเดต `checkAuthStatus` ให้เรียก `loadCart` เมื่อ login สำเร็จ
-            async function checkAuthStatus() {
-                const authContainer = document.getElementById('auth-container');
-                try {
-                    const res = await axios.get("http://localhost:8000/api/user/auth", { withCredentials: true });
-                    const userdata = res.data;
-                    
-                    await loadCart(); // <-- เรียกโหลดตะกร้าที่นี่
+                let adminButtonHtml = '';
+                if (userdata.role === 'admin') {
+                    adminButtonHtml = `
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item fw-bold text-danger" href="overview.html">
+                                <i class="bi bi-shield-lock-fill me-2"></i>จัดการหลังร้าน
+                            </a>
+                        </li>`;
+                }
 
-                    let adminButtonHtml = '';
-                    if (userdata.role === 'admin') {
-                        adminButtonHtml = `
+                authContainer.innerHTML = `
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle d-flex align-items-center" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="https://static.vecteezy.com/system/resources/thumbnails/028/087/760/small_2x/user-avatar-icon-doodle-style-png.png" alt="User Avatar" class="img-fluid rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover;">
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
+                            <li><h6 class="dropdown-header">${userdata.email}</h6></li>
+                            <li><a class="dropdown-item" href="userprofile.html"><i class="bi bi-person-gear me-2 text-primary"></i>Edit Profile</a></li>
+                            <li><a class="dropdown-item" href="order.html"><i class="bi bi-box-seam me-2 text-warning"></i>รายการสั่งซื้อ</a></li>
+                            ${adminButtonHtml}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item fw-bold text-danger" href="admin.html"><i class="bi bi-shield-lock-fill me-2"></i>จัดการหลังร้าน</a></li>`;
-                    }
+                            <li><button id="logout-btn" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></li>
+                        </ul>
+                    </div>`;
 
-                    authContainer.innerHTML = `
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle d-flex align-items-center" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="https://static.vecteezy.com/system/resources/thumbnails/028/087/760/small_2x/user-avatar-icon-doodle-style-png.png" alt="User Avatar" class="img-fluid rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover;">
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuButton">
-                                <li><h6 class="dropdown-header">${userdata.email}</h6></li>
-                                <li><a class="dropdown-item" href="userprofile.html"><i class="bi bi-person-gear me-2 text-primary"></i>Edit Profile</a></li>
-                                <li><a class="dropdown-item" href="OrderList.html"><i class="bi bi-box-seam me-2 text-warning"></i>รายการสั่งซื้อ</a></li>
-                                ${adminButtonHtml}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><button id="logout-btn" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></li>
-                            </ul>
-                        </div>`;
-
-                    document.getElementById('logout-btn').addEventListener('click', async () => {
-                        await axios.post("http://localhost:8000/api/logout", {}, { withCredentials: true });
-                        location.reload();
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    await axios.post("http://localhost:8000/api/logout", {}, {
+                        withCredentials: true
                     });
-                } catch (error) {
-                    console.log("User not logged in");
-                }
+                    location.reload();
+                });
+            } catch (error) {
+                console.log("User not logged in");
             }
+        }
 
-            // --- Event Listeners ---
-            document.getElementById('cart-button').addEventListener('click', () => { document.getElementById('cart-popup').classList.toggle('show'); document.getElementById('cart-backdrop').classList.toggle('show'); });
-            document.getElementById('close-cart-button').addEventListener('click', () => { document.getElementById('cart-popup').classList.remove('show'); document.getElementById('cart-backdrop').classList.remove('show'); });
-            document.getElementById('cart-backdrop').addEventListener('click', () => { document.getElementById('cart-popup').classList.remove('show'); document.getElementById('cart-backdrop').classList.remove('show'); });
-
-            // ✅ อัปเดต Event Listener ของปุ่ม "เพิ่มลงตะกร้า"
-            document.getElementById('book-list').addEventListener('click', async (event) => {
-                const btn = event.target.closest('.add-to-cart-btn');
-                if (!btn) return;
-
-                const userLoggedIn = !!document.getElementById('userMenuButton');
-                if (!userLoggedIn) {
-                    // (ส่วนของ Toast เหมือนเดิม)
-                    const toastEl = document.getElementById('login-toast');
-                    const toastProgressBar = toastEl.querySelector('.toast-progress');
-                    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-                    toastProgressBar.style.animation = 'none';
-                    void toastProgressBar.offsetWidth;
-                    toastProgressBar.style.animation = 'progress-bar-animation 3s linear forwards';
-                    toast.show();
-                    setTimeout(() => { window.location.href = "login.html"; }, 3000);
-                    return;
-                }
-
-                const bookId = parseInt(btn.dataset.bookId);
-                try {
-                    // ยิง POST request ไปยัง API เพื่อเพิ่มสินค้า
-                    await axios.post('/api/cart', 
-                        { product_id: bookId, quantity: 1 }, 
-                        { withCredentials: true }
-                    );
-                    // โหลดข้อมูลตะกร้าใหม่เพื่ออัปเดต UI
-                    await loadCart();
-                } catch (error) {
-                    console.error("Failed to add item to cart:", error);
-                    alert("เกิดข้อผิดพลาดในการเพิ่มสินค้าลงตะกร้า");
-                }
-            });
-
-            // ✅ อัปเดต Event Listener ของปุ่มในตะกร้า (+, -, ลบ)
-            document.getElementById('cart-items').addEventListener('click', async (event) => {
-                const target = event.target;
-                const productId = parseInt(target.dataset.id || target.closest('button')?.dataset.id);
-                if (!productId) return;
-
-                const item = cart.find(i => i.product_id === productId);
-                if (!item) return;
-
-                try {
-                    if (target.classList.contains('increase-qty')) {
-                        // PUT เพื่ออัปเดตจำนวน +1
-                        await axios.put(`/api/cart/${productId}`, 
-                            { quantity: item.cart_item_quantity + 1 }, 
-                            { withCredentials: true }
-                        );
-                    } else if (target.classList.contains('decrease-qty')) {
-                        if (item.cart_item_quantity > 1) {
-                            // PUT เพื่ออัปเดตจำนวน -1
-                            await axios.put(`/api/cart/${productId}`, 
-                                { quantity: item.cart_item_quantity - 1 }, 
-                                { withCredentials: true }
-                            );
-                        } else {
-                            // ถ้าจำนวนเหลือ 1 แล้วกดลบอีก ให้ลบออกจากตะกร้า
-                            await axios.delete(`/api/cart/${productId}`, { withCredentials: true });
-                        }
-                    } else if (target.closest('.remove-item')) {
-                        // DELETE เพื่อลบสินค้า
-                        await axios.delete(`/api/cart/${productId}`, { withCredentials: true });
-                    }
-                    // โหลดข้อมูลตะกร้าใหม่ทุกครั้งที่มีการเปลี่ยนแปลง
-                    await loadCart();
-                } catch (error) {
-                    console.error("Failed to update cart:", error);
-                    alert("เกิดข้อผิดพลาดในการอัปเดตตะกร้า");
-                }
-            });
-
-            // --- Initial Load ---
-            async function main() {
-                // checkAuthStatus จะเรียก loadCart() เองถ้า login แล้ว
-                await checkAuthStatus(); 
-                const books = await fetchBooks();
-                renderBooks(books);
-            }
-            main();
+        document.getElementById('cart-button').addEventListener('click', () => {
+            document.getElementById('cart-popup').classList.toggle('show');
+            document.getElementById('cart-backdrop').classList.toggle('show');
         });
+
+        document.getElementById('close-cart-button').addEventListener('click', () => {
+            document.getElementById('cart-popup').classList.remove('show');
+            document.getElementById('cart-backdrop').classList.remove('show');
+        });
+
+        document.getElementById('cart-backdrop').addEventListener('click', () => {
+            document.getElementById('cart-popup').classList.remove('show');
+            document.getElementById('cart-backdrop').classList.remove('show');
+        });
+
+        document.getElementById('book-list').addEventListener('click', async (event) => {
+            const btn = event.target.closest('.add-to-cart-btn');
+            if (!btn) return;
+
+            const userLoggedIn = !!document.getElementById('userMenuButton');
+            if (!userLoggedIn) {
+                const toastEl = document.getElementById('login-toast');
+                const toastProgressBar = toastEl.querySelector('.toast-progress');
+                const toast = new bootstrap.Toast(toastEl, {
+                    delay: 3000
+                });
+                toastProgressBar.style.animation = 'none';
+                void toastProgressBar.offsetWidth;
+                toastProgressBar.style.animation = 'progress-bar-animation 3s linear forwards';
+                toast.show();
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 3000);
+                return;
+            }
+
+            const bookId = parseInt(btn.dataset.bookId);
+            try {
+                await axios.post('/api/cart', {
+                    product_id: bookId,
+                    quantity: 1
+                }, {
+                    withCredentials: true
+                });
+                await loadCart();
+            } catch (error) {
+                console.error("Failed to add item to cart:", error);
+                alert("เกิดข้อผิดพลาดในการเพิ่มสินค้าลงตะกร้า");
+            }
+        });
+
+        document.getElementById('cart-items').addEventListener('click', async (event) => {
+            const target = event.target;
+            const productId = parseInt(target.dataset.id || target.closest('button')?.dataset.id);
+            if (!productId) return;
+
+            const item = cart.find(i => i.product_id === productId);
+            if (!item) return;
+
+            try {
+                if (target.classList.contains('increase-qty')) {
+                    await axios.put(`/api/cart/${productId}`, {
+                        quantity: item.cart_item_quantity + 1
+                    }, {
+                        withCredentials: true
+                    });
+                } else if (target.classList.contains('decrease-qty')) {
+                    if (item.cart_item_quantity > 1) {
+                        await axios.put(`/api/cart/${productId}`, {
+                            quantity: item.cart_item_quantity - 1
+                        }, {
+                            withCredentials: true
+                        });
+                    } else {
+                        await axios.delete(`/api/cart/${productId}`, {
+                            withCredentials: true
+                        });
+                    }
+                } else if (target.closest('.remove-item')) {
+                    await axios.delete(`/api/cart/${productId}`, {
+                        withCredentials: true
+                    });
+                }
+                await loadCart();
+            } catch (error) {
+                console.error("Failed to update cart:", error);
+                alert("เกิดข้อผิดพลาดในการอัปเดตตะกร้า");
+            }
+        });
+
+        async function main() {
+            await checkAuthStatus();
+            const books = await fetchBooks();
+            renderBooks(books);
+        }
+        
+        main();
+    });
     </script>
 </body>
-
 </html>

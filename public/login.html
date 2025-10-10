@@ -115,7 +115,7 @@
                 // ตรวจสอบ role จาก backend response (ถ้ามี)
                 // ผมได้แก้ไข path สำหรับ admin ให้ถูกต้องตามไฟล์ index.js ของคุณ
                 if (res.data.user && res.data.user.role === "admin") {
-                    window.location.href = "/admin.html"; // หรือ path ไปยังหน้า admin ของคุณ
+                    window.location.href = "/overview.html"; // หรือ path ไปยังหน้า admin ของคุณ
                 } else {
                     window.location.href = "/"; // ไปหน้าหลัก
                 }
